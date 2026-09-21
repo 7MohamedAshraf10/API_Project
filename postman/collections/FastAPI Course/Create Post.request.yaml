@@ -1,0 +1,14 @@
+$kind: http-request
+description: ""
+url: http://127.0.0.1:8000/createposts
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"title\": \"Keda Keda\",\r
+
+    \    \"content\": \"Testing\"\r
+
+    }"
+order: 1787846552101

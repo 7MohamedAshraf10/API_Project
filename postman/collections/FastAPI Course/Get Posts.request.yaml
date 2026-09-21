@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://127.0.0.1:8000/posts
+method: GET
+body:
+  type: json
+  content: ""
+order: 3149549026959246

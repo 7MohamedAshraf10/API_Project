@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://127.0.0.1:8000/users/3
+method: GET
+order: 4503578621644775
