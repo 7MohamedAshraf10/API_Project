@@ -14,7 +14,10 @@ class PostCreate(PostBase):
 
 
 class Post(PostBase):
+    created_at: datetime.datetime
     id: int 
+    owner: UserOut
+
     class Config:
         from_attributes = True
 
