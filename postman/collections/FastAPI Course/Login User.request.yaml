@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{URL}}login"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: username
+      value: mohamed22@gmail.com
+      description: ""
+      disabled: false
+    - type: text
+      key: password
+      value: "22525994"
+      description: ""
+      disabled: false
+scripts:
+  - type: afterResponse
+    code: pm.environment.set("JWT", pm.response.json().access_token);
+    language: text/javascript
+  - type: beforeRequest
+    code: |
+      // Pre-request script should not read pm.response.json() since the response hasn't been received yet.
+      // Instead, move this logic to the Tests / Post-response script tab.
+order: 4503583874125624

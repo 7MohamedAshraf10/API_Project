@@ -1,0 +1,6 @@
+name: FastAPI
+values:
+  - key: URL
+    value: ''
+  - key: JWT
+    value: ''

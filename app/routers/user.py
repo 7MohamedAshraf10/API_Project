@@ -13,13 +13,20 @@ router  = APIRouter(
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    user_data = user.dict()
-    user_data["password"] = utils.hash_password(user.password)
+    try:
+        user_data = user.dict()
+        user_data["password"] = utils.hash_password(user.password)
 
-    new_user = models.User(**user_data)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        new_user = models.User(**user_data)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A user with this email already exists."     
+        )
+
     return new_user
 
 
@@ -32,3 +39,5 @@ def get_user(id: int, db: Session = Depends(get_db)):
             detail=f"User with id {id} not found",
         )
     return user
+
+
