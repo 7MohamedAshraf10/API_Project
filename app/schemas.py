@@ -20,7 +20,12 @@ class Post(PostBase):
 
     class Config:
         from_attributes = True
+class PostOut(BaseModel):
+    post: Post
+    votes: int
 
+    class Config:
+        from_attributes = True
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -47,4 +52,4 @@ class TokenData(BaseModel):
 
 class Vote(BaseModel):
     post_id: int
-    dir: conint(le=1)   
+    dir: conint(le=1)    # type: ignore

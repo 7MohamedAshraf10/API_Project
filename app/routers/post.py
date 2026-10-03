@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, Response, status, APIRouter
 from sqlalchemy.orm import Session
 from ..database import get_db
+from sqlalchemy import func
 
 
 
@@ -12,13 +13,16 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[schemas.Post])
+# @router.get("/", response_model=list[schemas.Post])
+@router.get("/", response_model=list[schemas.PostOut])
 async def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # {{URL}}posts?limit=5 to get 5 posts only
     # Offset skiping the first n posts
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
-    return posts
+    results = db.query(models.Post, func.count(models.Votes.post_id).label("votes")).join(
+        models.Votes, models.Votes.post_id == models.Post.id, isouter=True
+    ).filter(models.Post.title.contains(search)).group_by(models.Post.id).limit(limit).offset(skip).all()
+    
+    return [{"post": post, "votes": votes} for post, votes in results]
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -31,9 +35,11 @@ async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), c
     return new_post
 
 
-@router.get("/{id}",response_model=schemas.Post)
+@router.get("/{id}",response_model=schemas.PostOut)
 async def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Votes.post_id).label("votes")).join(
+            models.Votes, models.Votes.post_id == models.Post.id, isouter=True
+        ).group_by(models.Post.id).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -41,7 +47,8 @@ async def get_post(id: int, db: Session = Depends(get_db), current_user: int = D
         )
     # if post.owner_id != current_user.id:
     #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You're not Authorized to retrive this post")
-    return post
+    post, votes = post
+    return {"post": post, "votes": votes}
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -75,4 +82,3 @@ async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(g
     db.commit()
     db.refresh(existing_post)
     return existing_post
-
